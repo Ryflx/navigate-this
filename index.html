@@ -1,0 +1,55 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Navigate This</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Jersey+25+Charted&family=Inter:wght@300;400;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div id="background"></div>
+    <main id="app">
+        <header class="site-title">
+            <h1>NAVIGATE THIS</h1>
+            <p class="tagline">Enter the maze. Decode the clause. Find your way.</p>
+        </header>
+
+        <section id="login-section" class="card">
+            <h2>Access Gate</h2>
+            <form id="login-form" autocomplete="off">
+                <label for="teamName">Team name</label>
+                <input id="teamName" name="teamName" type="text" required placeholder="Your team">
+
+                <label for="token">Token</label>
+                <input id="token" name="token" type="password" required placeholder="Secret token">
+
+                <button type="submit" class="primary">Enter</button>
+                <p id="login-message" role="status" aria-live="polite"></p>
+            </form>
+            <div class="hint">
+                <span class="glyph">◆</span>
+                The key lies within the document. Extract wisely.
+            </div>
+        </section>
+
+        <section id="leaderboard-section" class="card hidden">
+            <h2>Hall of Navigators</h2>
+            <ol id="leaderboard"></ol>
+            <div class="next-clue">
+                <a id="next-clue-link" href="#" target="_blank" rel="noopener">Proceed to the next clue ▶</a>
+            </div>
+            <button id="reset" class="secondary">Reset (local)</button>
+        </section>
+
+        <footer class="footer">© <span id="year"></span> Navigate This</footer>
+    </main>
+
+    <script src="app.js"></script>
+</body>
+</html>
+
+
+
