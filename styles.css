@@ -39,7 +39,7 @@ body {
   padding: 40px 16px;
 }
 
-.site-title { text-align: center; margin-bottom: 20px; }
+.site-title { text-align: center; margin-bottom: 0px; }
 .site-title h1 {
   margin: 0 0 6px;
   font-family: "Jersey 25 Charted", system-ui;
@@ -54,7 +54,8 @@ body {
 .tagline { color: var(--muted); margin: 0; font-size: 14px; }
 
 .logo {
-  margin-top: 16px;
+  margin-top: 4px;
+  margin-bottom: 20px;
   border-radius: 12px;
   max-width: 200px;
   height: auto;

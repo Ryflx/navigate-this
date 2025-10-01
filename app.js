@@ -59,7 +59,7 @@ function renderLeaderboard() {
   list.innerHTML = "";
   state.leaderboard.forEach((entry, index) => {
     const li = document.createElement("li");
-    li.textContent = `${index + 1}. ${entry.teamName}`;
+    li.textContent = entry.teamName;
     const time = document.createElement("span");
     time.className = "time";
     time.textContent = ` – ${formatTime(entry.timestamp)}`;
