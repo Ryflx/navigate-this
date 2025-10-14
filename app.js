@@ -2,9 +2,7 @@
 const CONFIG = {
   allowedTokens: [
     // Replace with real extracted tokens. Order does not matter.
-    "OBSIDIAN-KEY-01",
-    "CRYPT-DELTA-42",
-    "SIGMA-PASS-777", // example winning token
+    "SIGMA-PASS-777" // example winning token
   ],
   // Which token actually grants access. Others are decoys.
   winningToken: "SIGMA-PASS-777",
@@ -19,11 +17,11 @@ const $ = (sel) => document.querySelector(sel);
 const state = {
   leaderboard: [],
   countdown: {
-    totalSeconds: 90 * 60, // 1 hour 30 minutes
-    remainingSeconds: 90 * 60,
-    isRunning: false,
+    // Deadline: November 5th, 2025 at 12:30 PM UK time (end of 2-hour session)
+    deadline: new Date('2025-11-05T12:30:00+00:00'), // UK time (GMT) - 12:30 PM
     intervalId: null
-  }
+  },
+  adminMode: false
 };
 
 function loadLeaderboard() {
@@ -79,7 +77,6 @@ function renderLeaderboard() {
 function showLeaderboard() {
   $("#login-section").classList.add("hidden");
   $("#leaderboard-section").classList.remove("hidden");
-  $("#next-clue-link").href = CONFIG.nextClueUrl;
   renderLeaderboard();
 }
 
@@ -130,60 +127,49 @@ function formatCountdown(seconds) {
   return `${String(hrs).padStart(2, '0')}:${String(mins).padStart(2, '0')}:${String(secs).padStart(2, '0')}`;
 }
 
+function calculateTimeRemaining() {
+  const now = new Date();
+  const deadline = state.countdown.deadline;
+  
+  // Calculate seconds remaining until deadline
+  const remainingSeconds = Math.floor((deadline - now) / 1000);
+  
+  return Math.max(0, remainingSeconds);
+}
+
 function updateCountdownDisplay() {
   const display = $("#countdown-timer");
-  display.textContent = formatCountdown(state.countdown.remainingSeconds);
+  const remainingSeconds = calculateTimeRemaining();
+  
+  display.textContent = formatCountdown(remainingSeconds);
   
   // Add visual warnings based on time remaining
   display.classList.remove("warning", "critical");
-  if (state.countdown.remainingSeconds <= 300) { // Last 5 minutes
+  if (remainingSeconds === 0) {
     display.classList.add("critical");
-  } else if (state.countdown.remainingSeconds <= 900) { // Last 15 minutes
+  } else if (remainingSeconds <= 300) { // Last 5 minutes
+    display.classList.add("critical");
+  } else if (remainingSeconds <= 1800) { // Last 30 minutes
     display.classList.add("warning");
   }
 }
 
-function tickCountdown() {
-  if (state.countdown.remainingSeconds > 0) {
-    state.countdown.remainingSeconds--;
-    updateCountdownDisplay();
-  } else {
-    // Time's up!
-    pauseCountdown();
-    alert("⚠ JUDGMENT DAY HAS ARRIVED ⚠\nTIME EXPIRED");
-  }
-}
-
-function startCountdown() {
-  // Require admin password to start countdown
-  const password = prompt("ADMIN AUTHENTICATION REQUIRED\nEnter password to initiate countdown:");
+function toggleAdminMode() {
+  const password = prompt("ADMIN AUTHENTICATION REQUIRED\nEnter password:");
   
-  if (password !== CONFIG.adminPassword) {
+  if (password === CONFIG.adminPassword) {
+    state.adminMode = !state.adminMode;
+    const resetBtn = $("#reset");
+    if (state.adminMode) {
+      resetBtn.classList.remove("hidden");
+      alert("ADMIN MODE ACTIVATED");
+    } else {
+      resetBtn.classList.add("hidden");
+      alert("ADMIN MODE DEACTIVATED");
+    }
+  } else if (password !== null) {
     alert("ACCESS DENIED: INVALID CREDENTIALS");
-    return;
   }
-  
-  if (!state.countdown.isRunning) {
-    state.countdown.isRunning = true;
-    state.countdown.intervalId = setInterval(tickCountdown, 1000);
-    $("#start-timer").classList.add("hidden");
-    $("#pause-timer").classList.remove("hidden");
-  }
-}
-
-function pauseCountdown() {
-  if (state.countdown.isRunning) {
-    state.countdown.isRunning = false;
-    clearInterval(state.countdown.intervalId);
-    $("#start-timer").classList.remove("hidden");
-    $("#pause-timer").classList.add("hidden");
-  }
-}
-
-function resetCountdown() {
-  pauseCountdown();
-  state.countdown.remainingSeconds = state.countdown.totalSeconds;
-  updateCountdownDisplay();
 }
 
 function init() {
@@ -194,13 +180,17 @@ function init() {
   $("#login-form").addEventListener("submit", onSubmitLogin);
   $("#reset").addEventListener("click", onReset);
   
-  // Event listeners for countdown timer
-  $("#start-timer").addEventListener("click", startCountdown);
-  $("#pause-timer").addEventListener("click", pauseCountdown);
-  $("#reset-timer").addEventListener("click", resetCountdown);
+  // Admin mode toggle with keyboard shortcut (Ctrl/Cmd + Shift + A)
+  document.addEventListener("keydown", (e) => {
+    if ((e.ctrlKey || e.metaKey) && e.shiftKey && e.key === 'A') {
+      e.preventDefault();
+      toggleAdminMode();
+    }
+  });
   
-  // Initialize countdown display
+  // Initialize and start countdown timer (updates every second)
   updateCountdownDisplay();
+  state.countdown.intervalId = setInterval(updateCountdownDisplay, 1000);
 }
 
 document.addEventListener("DOMContentLoaded", init);
