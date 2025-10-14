@@ -1,11 +1,10 @@
 // Configurable allowed tokens (MVP). In production, validate server-side.
 const CONFIG = {
-  allowedTokens: [
-    // Replace with real extracted tokens. Order does not matter.
-    "SIGMA-PASS-777" // example winning token
-  ],
-  // Which token actually grants access. Others are decoys.
-  winningToken: "SIGMA-PASS-777",
+  // Valid Genesis codes - teams can submit multiple codes
+  genesisCodes: {
+    "GENESIS-BLACK-001": "Document Code", // Code in black text in documents
+    "GENESIS-AI-002": "AI Hidden Code"    // Code hidden with AI
+  },
   nextClueUrl: "https://example.com/your-prerecorded-video", // TODO: replace with real URL
   storageKey: "navigate-this-leaderboard-v1",
   // Admin password for countdown control
@@ -21,39 +20,61 @@ const state = {
     deadline: new Date('2025-11-05T12:30:00+00:00'), // UK time (GMT) - 12:30 PM
     intervalId: null
   },
-  adminMode: false
+  adminMode: false,
+  apiUrl: window.location.origin // Use same origin for API calls
 };
 
-function loadLeaderboard() {
+async function loadLeaderboard() {
   try {
-    const raw = localStorage.getItem(CONFIG.storageKey);
-    state.leaderboard = raw ? JSON.parse(raw) : [];
+    const response = await fetch(`${state.apiUrl}/api/leaderboard`);
+    if (response.ok) {
+      state.leaderboard = await response.json();
+    } else {
+      console.error('Failed to load leaderboard');
+      state.leaderboard = [];
+    }
   } catch (e) {
+    console.error('Error loading leaderboard:', e);
     state.leaderboard = [];
   }
 }
 
-function saveLeaderboard() {
-  localStorage.setItem(CONFIG.storageKey, JSON.stringify(state.leaderboard));
+async function submitCode(teamName, code) {
+  try {
+    const response = await fetch(`${state.apiUrl}/api/submit`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({ teamName, code })
+    });
+    
+    if (response.ok) {
+      return await response.json();
+    } else {
+      throw new Error('Failed to submit code');
+    }
+  } catch (e) {
+    console.error('Error submitting code:', e);
+    throw e;
+  }
 }
 
-function isTokenAllowed(token) {
-  return CONFIG.allowedTokens.includes(token);
+function isValidGenesisCode(code) {
+  return CONFIG.genesisCodes.hasOwnProperty(code);
 }
 
-function isWinningToken(token) {
-  return token === CONFIG.winningToken;
+function getCodeType(code) {
+  return CONFIG.genesisCodes[code] || "Unknown";
 }
 
-function addToLeaderboard(teamName) {
-  const entry = {
-    teamName: teamName.trim(),
-    timestamp: Date.now()
-  };
-  state.leaderboard.push(entry);
-  state.leaderboard.sort((a, b) => a.timestamp - b.timestamp);
-  saveLeaderboard();
+function findTeamEntry(teamName) {
+  return state.leaderboard.find(entry => 
+    entry.teamName.toLowerCase() === teamName.trim().toLowerCase()
+  );
 }
+
+// No longer needed - submission handled by API
 
 function formatTime(ts) {
   const d = new Date(ts);
@@ -65,11 +86,41 @@ function renderLeaderboard() {
   list.innerHTML = "";
   state.leaderboard.forEach((entry, index) => {
     const li = document.createElement("li");
-    li.textContent = entry.teamName;
-    const time = document.createElement("span");
+    
+    // Team name and code count badge
+    const teamInfo = document.createElement("div");
+    teamInfo.className = "team-info";
+    
+    const teamName = document.createElement("span");
+    teamName.className = "team-name";
+    teamName.textContent = entry.teamName;
+    teamInfo.appendChild(teamName);
+    
+    // Show codes as badges
+    const codesBadge = document.createElement("span");
+    codesBadge.className = `codes-badge codes-${entry.codes.length}`;
+    codesBadge.textContent = `${entry.codes.length}/${Object.keys(CONFIG.genesisCodes).length} codes`;
+    teamInfo.appendChild(codesBadge);
+    
+    li.appendChild(teamInfo);
+    
+    // Show which codes were submitted
+    const codesDetail = document.createElement("div");
+    codesDetail.className = "codes-detail";
+    entry.codes.forEach(code => {
+      const codeTag = document.createElement("span");
+      codeTag.className = "code-tag";
+      codeTag.textContent = `✓ ${getCodeType(code)}`;
+      codesDetail.appendChild(codeTag);
+    });
+    li.appendChild(codesDetail);
+    
+    // Timestamp
+    const time = document.createElement("div");
     time.className = "time";
-    time.textContent = ` – ${formatTime(entry.timestamp)}`;
+    time.textContent = `First submission: ${formatTime(entry.timestamp)}`;
     li.appendChild(time);
+    
     list.appendChild(li);
   });
 }
@@ -80,42 +131,91 @@ function showLeaderboard() {
   renderLeaderboard();
 }
 
-function onSubmitLogin(e) {
+async function onSubmitLogin(e) {
   e.preventDefault();
   const teamName = $("#teamName").value || "";
-  const token = $("#token").value || "";
+  const code = $("#token").value || "";
   const msg = $("#login-message");
+  const submitBtn = $("#login-form button[type='submit']");
+  
   msg.style.color = "var(--danger)";
 
   if (!teamName.trim()) {
     msg.textContent = "ERROR: UNIT DESIGNATION REQUIRED";
     return;
   }
-  if (!token.trim()) {
-    msg.textContent = "ERROR: ACCESS CODE REQUIRED";
+  if (!code.trim()) {
+    msg.textContent = "ERROR: GENESIS CODE REQUIRED";
     return;
   }
-  if (!isTokenAllowed(token)) {
-    msg.textContent = "ACCESS DENIED: INVALID AUTHORIZATION";
-    return;
-  }
-  if (!isWinningToken(token)) {
-    msg.textContent = "ALERT: INCORRECT SEQUENCE. REROUTE PROTOCOL.";
+  
+  if (!isValidGenesisCode(code)) {
+    msg.textContent = "ACCESS DENIED: INVALID GENESIS CODE";
     return;
   }
 
-  // Success
-  addToLeaderboard(teamName);
-  msg.style.color = "var(--accent)";
-  msg.textContent = "AUTHENTICATION SUCCESSFUL. WELCOME TO THE RESISTANCE.";
-  showLeaderboard();
+  // Disable button during submission
+  submitBtn.disabled = true;
+  msg.textContent = "PROCESSING...";
+
+  try {
+    // Submit to API
+    const result = await submitCode(teamName, code);
+    
+    msg.style.color = "var(--accent)";
+    const totalCodes = Object.keys(CONFIG.genesisCodes).length;
+    
+    if (result.duplicate) {
+      msg.textContent = `CODE ALREADY SUBMITTED. YOU HAVE ${result.codesCount}/${totalCodes} CODES.`;
+      setTimeout(async () => {
+        await loadLeaderboard();
+        showLeaderboard();
+      }, 2000);
+    } else if (result.success) {
+      if (result.codesCount === totalCodes) {
+        msg.textContent = `GENESIS COMPLETE! ALL ${totalCodes} CODES UPLOADED. WELCOME TO THE RESISTANCE.`;
+      } else if (result.codesCount > 1) {
+        msg.textContent = `${getCodeType(code)} VERIFIED. ${result.codesCount}/${totalCodes} CODES UPLOADED. CONTINUE MISSION.`;
+      } else {
+        msg.textContent = `${getCodeType(code)} VERIFIED. ${result.codesCount}/${totalCodes} CODES UPLOADED.`;
+      }
+      
+      setTimeout(async () => {
+        await loadLeaderboard();
+        showLeaderboard();
+      }, 2500);
+    }
+  } catch (error) {
+    msg.style.color = "var(--danger)";
+    msg.textContent = "ERROR: SUBMISSION FAILED. TRY AGAIN.";
+    console.error('Submission error:', error);
+  } finally {
+    submitBtn.disabled = false;
+  }
 }
 
-function onReset() {
+async function onReset() {
   if (confirm("PURGE ALL RESISTANCE REGISTRY DATA? THIS ACTION IS IRREVERSIBLE.")) {
-    state.leaderboard = [];
-    saveLeaderboard();
-    renderLeaderboard();
+    try {
+      const response = await fetch(`${state.apiUrl}/api/admin/reset`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ password: CONFIG.adminPassword })
+      });
+      
+      if (response.ok) {
+        state.leaderboard = [];
+        renderLeaderboard();
+        alert('LEADERBOARD PURGED');
+      } else {
+        alert('PURGE FAILED: AUTHORIZATION ERROR');
+      }
+    } catch (error) {
+      console.error('Reset error:', error);
+      alert('PURGE FAILED: SYSTEM ERROR');
+    }
   }
 }
 
@@ -172,9 +272,11 @@ function toggleAdminMode() {
   }
 }
 
-function init() {
+async function init() {
   $("#year").textContent = String(new Date().getFullYear());
-  loadLeaderboard();
+  
+  // Load leaderboard from API
+  await loadLeaderboard();
   
   // Event listeners for form
   $("#login-form").addEventListener("submit", onSubmitLogin);
@@ -191,6 +293,15 @@ function init() {
   // Initialize and start countdown timer (updates every second)
   updateCountdownDisplay();
   state.countdown.intervalId = setInterval(updateCountdownDisplay, 1000);
+  
+  // Refresh leaderboard every 10 seconds to show new submissions
+  setInterval(async () => {
+    await loadLeaderboard();
+    // Only re-render if leaderboard is visible
+    if (!$("#leaderboard-section").classList.contains("hidden")) {
+      renderLeaderboard();
+    }
+  }, 10000);
 }
 
 document.addEventListener("DOMContentLoaded", init);

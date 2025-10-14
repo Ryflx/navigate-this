@@ -116,9 +116,79 @@ input:focus {
 .hint { margin-top: 8px; color: var(--muted); font-size: 13px; display: flex; align-items: center; gap: 8px; }
 .glyph { color: var(--accent); }
 
-ol#leaderboard { margin: 0; padding-left: 20px; }
-ol#leaderboard li { padding: 6px 0; }
-ol#leaderboard li span.time { color: var(--muted); font-size: 12px; margin-left: 6px; }
+ol#leaderboard { 
+  margin: 0; 
+  padding-left: 20px; 
+  list-style: decimal;
+}
+
+ol#leaderboard li { 
+  padding: 12px 0; 
+  border-bottom: 1px solid rgba(255, 51, 0, 0.2);
+}
+
+ol#leaderboard li:last-child {
+  border-bottom: none;
+}
+
+.team-info {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 6px;
+}
+
+.team-name {
+  font-weight: 600;
+  font-size: 16px;
+  color: var(--text);
+}
+
+.codes-badge {
+  display: inline-block;
+  padding: 3px 8px;
+  border-radius: 3px;
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.codes-badge.codes-1 {
+  background: rgba(255, 102, 0, 0.2);
+  color: var(--accent);
+  border: 1px solid var(--accent);
+}
+
+.codes-badge.codes-2 {
+  background: rgba(255, 0, 0, 0.3);
+  color: var(--terminal-red);
+  border: 1px solid var(--terminal-red);
+  box-shadow: 0 0 10px rgba(255, 0, 0, 0.4);
+}
+
+.codes-detail {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-bottom: 4px;
+}
+
+.code-tag {
+  display: inline-block;
+  padding: 2px 8px;
+  background: rgba(0, 0, 0, 0.5);
+  border: 1px solid var(--border);
+  border-radius: 2px;
+  font-size: 11px;
+  color: var(--accent);
+}
+
+ol#leaderboard li .time { 
+  color: var(--muted); 
+  font-size: 11px; 
+  display: block;
+}
 
 .next-clue { margin-top: 20px; }
 .next-clue a { color: var(--accent); text-decoration: none; }
