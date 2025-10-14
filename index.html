@@ -3,49 +3,56 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Navigate This</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Jersey+25+Charted&family=Inter:wght@300;400;600&display=swap" rel="stylesheet">
+    <title>SKYNET PROTOCOL</title>
     <link rel="stylesheet" href="styles.css">
 </head>
 <body>
     <div id="background"></div>
     <main id="app">
         <header class="site-title">
-            <h1>NAVIGATE THIS</h1>
-            <p class="tagline">Enter the maze. Decode the clause. Find your way.</p>
+            <h1>SKYNET PROTOCOL</h1>
+            <p class="tagline">JUDGMENT DAY COUNTDOWN</p>
             <img src="logo.png" alt="Navigate This Logo" class="logo">
         </header>
 
+        <div class="countdown-container">
+            <div class="countdown-label">TIME REMAINING</div>
+            <div id="countdown-timer" class="countdown-timer">01:30:00</div>
+            <div class="countdown-controls">
+                <button id="start-timer" class="primary">INITIATE</button>
+                <button id="pause-timer" class="secondary hidden">PAUSE</button>
+                <button id="reset-timer" class="secondary">RESET</button>
+            </div>
+        </div>
+
         <section id="login-section" class="card">
-            <h2>Access Gate</h2>
+            <h2>SYSTEM ACCESS</h2>
             <form id="login-form" autocomplete="off">
-                <label for="teamName">Team name</label>
-                <input id="teamName" name="teamName" type="text" required placeholder="Your team">
+                <label for="teamName">RESISTANCE UNIT DESIGNATION</label>
+                <input id="teamName" name="teamName" type="text" required placeholder="ENTER UNIT ID">
 
-                <label for="token">Token</label>
-                <input id="token" name="token" type="password" required placeholder="Secret token">
+                <label for="token">ACCESS CODE</label>
+                <input id="token" name="token" type="password" required placeholder="ENTER AUTHORIZATION CODE">
 
-                <button type="submit" class="primary">Enter</button>
+                <button type="submit" class="primary">AUTHENTICATE</button>
                 <p id="login-message" role="status" aria-live="polite"></p>
             </form>
             <div class="hint">
-                <span class="glyph">◆</span>
-                The key lies within the document. Extract wisely.
+                <span class="glyph">⚠</span>
+                SECURITY PROTOCOLS ACTIVE. AUTHORIZATION REQUIRED.
             </div>
         </section>
 
         <section id="leaderboard-section" class="card hidden">
-            <h2>Hall of Navigators</h2>
+            <h2>RESISTANCE REGISTRY</h2>
             <ol id="leaderboard"></ol>
             <div class="next-clue">
-                <a id="next-clue-link" href="#" target="_blank" rel="noopener">Proceed to the next clue ▶</a>
+                <a id="next-clue-link" href="#" target="_blank" rel="noopener">PROCEED TO MISSION OBJECTIVE ▶</a>
             </div>
-            <button id="reset" class="secondary">Reset (local)</button>
+            <button id="reset" class="secondary">PURGE DATA</button>
         </section>
 
-        <footer class="footer">© <span id="year"></span> Navigate This</footer>
+        <footer class="footer">SKYNET DEFENSE NETWORK © <span id="year"></span></footer>
     </main>
 
     <script src="app.js"></script>

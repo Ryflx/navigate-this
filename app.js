@@ -9,13 +9,21 @@ const CONFIG = {
   // Which token actually grants access. Others are decoys.
   winningToken: "SIGMA-PASS-777",
   nextClueUrl: "https://example.com/your-prerecorded-video", // TODO: replace with real URL
-  storageKey: "navigate-this-leaderboard-v1"
+  storageKey: "navigate-this-leaderboard-v1",
+  // Admin password for countdown control
+  adminPassword: "SKYNET2029" // Change this to your preferred password
 };
 
 const $ = (sel) => document.querySelector(sel);
 
 const state = {
-  leaderboard: []
+  leaderboard: [],
+  countdown: {
+    totalSeconds: 90 * 60, // 1 hour 30 minutes
+    remainingSeconds: 90 * 60,
+    isRunning: false,
+    intervalId: null
+  }
 };
 
 function loadLeaderboard() {
@@ -83,42 +91,116 @@ function onSubmitLogin(e) {
   msg.style.color = "var(--danger)";
 
   if (!teamName.trim()) {
-    msg.textContent = "Please enter a team name.";
+    msg.textContent = "ERROR: UNIT DESIGNATION REQUIRED";
     return;
   }
   if (!token.trim()) {
-    msg.textContent = "Please enter a token.";
+    msg.textContent = "ERROR: ACCESS CODE REQUIRED";
     return;
   }
   if (!isTokenAllowed(token)) {
-    msg.textContent = "Invalid token.";
+    msg.textContent = "ACCESS DENIED: INVALID AUTHORIZATION";
     return;
   }
   if (!isWinningToken(token)) {
-    msg.textContent = "Close, but not this path. Keep navigating.";
+    msg.textContent = "ALERT: INCORRECT SEQUENCE. REROUTE PROTOCOL.";
     return;
   }
 
   // Success
   addToLeaderboard(teamName);
   msg.style.color = "var(--accent)";
-  msg.textContent = "Access granted.";
+  msg.textContent = "AUTHENTICATION SUCCESSFUL. WELCOME TO THE RESISTANCE.";
   showLeaderboard();
 }
 
 function onReset() {
-  if (confirm("Reset local leaderboard? This only affects your browser.")) {
+  if (confirm("PURGE ALL RESISTANCE REGISTRY DATA? THIS ACTION IS IRREVERSIBLE.")) {
     state.leaderboard = [];
     saveLeaderboard();
     renderLeaderboard();
   }
 }
 
+// Countdown Timer Functions
+function formatCountdown(seconds) {
+  const hrs = Math.floor(seconds / 3600);
+  const mins = Math.floor((seconds % 3600) / 60);
+  const secs = seconds % 60;
+  return `${String(hrs).padStart(2, '0')}:${String(mins).padStart(2, '0')}:${String(secs).padStart(2, '0')}`;
+}
+
+function updateCountdownDisplay() {
+  const display = $("#countdown-timer");
+  display.textContent = formatCountdown(state.countdown.remainingSeconds);
+  
+  // Add visual warnings based on time remaining
+  display.classList.remove("warning", "critical");
+  if (state.countdown.remainingSeconds <= 300) { // Last 5 minutes
+    display.classList.add("critical");
+  } else if (state.countdown.remainingSeconds <= 900) { // Last 15 minutes
+    display.classList.add("warning");
+  }
+}
+
+function tickCountdown() {
+  if (state.countdown.remainingSeconds > 0) {
+    state.countdown.remainingSeconds--;
+    updateCountdownDisplay();
+  } else {
+    // Time's up!
+    pauseCountdown();
+    alert("⚠ JUDGMENT DAY HAS ARRIVED ⚠\nTIME EXPIRED");
+  }
+}
+
+function startCountdown() {
+  // Require admin password to start countdown
+  const password = prompt("ADMIN AUTHENTICATION REQUIRED\nEnter password to initiate countdown:");
+  
+  if (password !== CONFIG.adminPassword) {
+    alert("ACCESS DENIED: INVALID CREDENTIALS");
+    return;
+  }
+  
+  if (!state.countdown.isRunning) {
+    state.countdown.isRunning = true;
+    state.countdown.intervalId = setInterval(tickCountdown, 1000);
+    $("#start-timer").classList.add("hidden");
+    $("#pause-timer").classList.remove("hidden");
+  }
+}
+
+function pauseCountdown() {
+  if (state.countdown.isRunning) {
+    state.countdown.isRunning = false;
+    clearInterval(state.countdown.intervalId);
+    $("#start-timer").classList.remove("hidden");
+    $("#pause-timer").classList.add("hidden");
+  }
+}
+
+function resetCountdown() {
+  pauseCountdown();
+  state.countdown.remainingSeconds = state.countdown.totalSeconds;
+  updateCountdownDisplay();
+}
+
 function init() {
   $("#year").textContent = String(new Date().getFullYear());
   loadLeaderboard();
+  
+  // Event listeners for form
   $("#login-form").addEventListener("submit", onSubmitLogin);
   $("#reset").addEventListener("click", onReset);
+  
+  // Event listeners for countdown timer
+  $("#start-timer").addEventListener("click", startCountdown);
+  $("#pause-timer").addEventListener("click", pauseCountdown);
+  $("#reset-timer").addEventListener("click", resetCountdown);
+  
+  // Initialize countdown display
+  updateCountdownDisplay();
 }
 
 document.addEventListener("DOMContentLoaded", init);
