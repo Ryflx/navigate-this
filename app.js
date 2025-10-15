@@ -131,6 +131,20 @@ function showLeaderboard() {
   renderLeaderboard();
 }
 
+function showLoginForm() {
+  $("#leaderboard-section").classList.add("hidden");
+  $("#login-section").classList.remove("hidden");
+  // Clear form for security
+  $("#teamName").value = "";
+  $("#token").value = "";
+  $("#login-message").textContent = "";
+}
+
+async function refreshLeaderboard() {
+  await loadLeaderboard();
+  renderLeaderboard();
+}
+
 async function onSubmitLogin(e) {
   e.preventDefault();
   const teamName = $("#teamName").value || "";
@@ -281,6 +295,10 @@ async function init() {
   // Event listeners for form
   $("#login-form").addEventListener("submit", onSubmitLogin);
   $("#reset").addEventListener("click", onReset);
+  
+  // Event listeners for navigation
+  $("#submit-another").addEventListener("click", showLoginForm);
+  $("#refresh-leaderboard").addEventListener("click", refreshLeaderboard);
   
   // Admin mode toggle with keyboard shortcut (Ctrl/Cmd + Shift + A)
   document.addEventListener("keydown", (e) => {
