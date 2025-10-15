@@ -251,20 +251,51 @@ function calculateTimeRemaining() {
   return Math.max(0, remainingSeconds);
 }
 
+function playBeep(frequency = 800, duration = 100) {
+  try {
+    // Create audio context for beep sound
+    const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+    const oscillator = audioContext.createOscillator();
+    const gainNode = audioContext.createGain();
+    
+    oscillator.connect(gainNode);
+    gainNode.connect(audioContext.destination);
+    
+    oscillator.frequency.setValueAtTime(frequency, audioContext.currentTime);
+    oscillator.type = 'square';
+    
+    gainNode.gain.setValueAtTime(0.3, audioContext.currentTime);
+    gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + duration / 1000);
+    
+    oscillator.start(audioContext.currentTime);
+    oscillator.stop(audioContext.currentTime + duration / 1000);
+  } catch (e) {
+    // Fallback: use system beep if available
+    console.log('\a'); // Bell character (may not work in all browsers)
+  }
+}
+
 function updateCountdownDisplay() {
   const display = $("#countdown-timer");
   const remainingSeconds = calculateTimeRemaining();
   
   display.textContent = formatCountdown(remainingSeconds);
   
-  // Add visual warnings based on time remaining
+  // Add visual warnings and audio feedback based on time remaining
   display.classList.remove("warning", "critical");
   if (remainingSeconds === 0) {
     display.classList.add("critical");
-  } else if (remainingSeconds <= 300) { // Last 5 minutes
+    // Continuous beep when time is up
+    playBeep(1000, 200);
+  } else if (remainingSeconds <= 60 && remainingSeconds % 10 === 0) { // Every 10 seconds in last minute
     display.classList.add("critical");
-  } else if (remainingSeconds <= 1800) { // Last 30 minutes
+    playBeep(800, 150);
+  } else if (remainingSeconds <= 300 && remainingSeconds % 30 === 0) { // Every 30 seconds in last 5 minutes
+    display.classList.add("critical");
+    playBeep(600, 100);
+  } else if (remainingSeconds <= 1800 && remainingSeconds % 60 === 0) { // Every minute in last 30 minutes
     display.classList.add("warning");
+    playBeep(400, 80);
   }
 }
 
