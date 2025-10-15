@@ -11,6 +11,9 @@ app.use(express.json());
 app.use(express.static('.')); // Serve static files from current directory
 
 // Database connection
+console.log('DATABASE_URL:', process.env.DATABASE_URL ? 'SET' : 'NOT SET');
+console.log('NODE_ENV:', process.env.NODE_ENV);
+
 if (!process.env.DATABASE_URL) {
   console.error('ERROR: DATABASE_URL environment variable is not set!');
   process.exit(1);
