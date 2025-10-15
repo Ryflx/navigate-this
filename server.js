@@ -12,6 +12,7 @@ app.use(express.static('.')); // Serve static files from current directory
 
 // Database connection
 console.log('DATABASE_URL:', process.env.DATABASE_URL ? 'SET' : 'NOT SET');
+console.log('DATABASE_URL value:', process.env.DATABASE_URL);
 console.log('NODE_ENV:', process.env.NODE_ENV);
 
 if (!process.env.DATABASE_URL) {
