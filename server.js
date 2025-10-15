@@ -1,13 +1,41 @@
 const express = require('express');
 const cors = require('cors');
 const { Pool } = require('pg');
+const fs = require('fs');
+const path = require('path');
 
 const app = express();
 const port = process.env.PORT || 3000;
 
-// In-memory storage fallback
+// File-based storage fallback
+const DATA_FILE = path.join(__dirname, 'leaderboard.json');
 let inMemoryLeaderboard = [];
 let dbConnected = false;
+
+// File storage functions
+function saveToFile() {
+  try {
+    fs.writeFileSync(DATA_FILE, JSON.stringify(inMemoryLeaderboard, null, 2));
+    console.log('Data saved to file');
+  } catch (err) {
+    console.error('Error saving to file:', err);
+  }
+}
+
+function loadFromFile() {
+  try {
+    if (fs.existsSync(DATA_FILE)) {
+      const data = fs.readFileSync(DATA_FILE, 'utf8');
+      inMemoryLeaderboard = JSON.parse(data);
+      console.log('Data loaded from file:', inMemoryLeaderboard.length, 'entries');
+    } else {
+      console.log('No data file found, starting fresh');
+    }
+  } catch (err) {
+    console.error('Error loading from file:', err);
+    inMemoryLeaderboard = [];
+  }
+}
 
 // Middleware
 app.use(cors());
@@ -51,8 +79,8 @@ async function initDB() {
     }
   } catch (err) {
     console.error('Database connection failed:', err.message);
-    console.log('Server will continue without database - using in-memory storage');
-    // Don't exit - let the server run without database
+    console.log('Server will continue without database - using file storage');
+    loadFromFile(); // Load existing data from file
   }
 }
 
@@ -172,6 +200,7 @@ app.post('/api/submit', async (req, res) => {
       
       existingTeam.codes.push(code);
       existingTeam.lastUpdate = Date.now();
+      saveToFile(); // Save to file
       
       return res.json({ 
         success: true, 
@@ -188,6 +217,7 @@ app.post('/api/submit', async (req, res) => {
       };
       
       inMemoryLeaderboard.push(newEntry);
+      saveToFile(); // Save to file
       
       return res.json({ 
         success: true, 
@@ -218,9 +248,10 @@ app.post('/api/admin/reset', async (req, res) => {
       res.status(500).json({ error: 'Failed to reset leaderboard' });
     }
   } else {
-    // Reset in-memory storage
+    // Reset file storage
     inMemoryLeaderboard = [];
-    res.json({ success: true, message: 'Leaderboard reset (in-memory)' });
+    saveToFile(); // Save empty array to file
+    res.json({ success: true, message: 'Leaderboard reset (file storage)' });
   }
 });
 
