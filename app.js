@@ -16,8 +16,8 @@ const $ = (sel) => document.querySelector(sel);
 const state = {
   leaderboard: [],
   countdown: {
-    // Deadline: November 5th, 2025 at 12:30 PM UK time (end of 2-hour session)
-    deadline: new Date('2025-11-05T12:30:00+00:00'), // UK time (GMT) - 12:30 PM
+    // Deadline: November 4th, 2025 at 10:00 AM Pacific Time
+    deadline: new Date('2025-11-04T10:00:00-08:00'), // Pacific Time (PST)
     intervalId: null
   },
   adminMode: false,
