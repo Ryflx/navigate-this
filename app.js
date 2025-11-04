@@ -268,7 +268,7 @@ function updateCountdownDisplay() {
   }
 }
 
-function toggleAdminMode() {
+async function toggleAdminMode() {
   const password = prompt("ADMIN AUTHENTICATION REQUIRED\nEnter password:");
   
   if (password === CONFIG.adminPassword) {
@@ -276,9 +276,16 @@ function toggleAdminMode() {
     const resetBtn = $("#reset");
     if (state.adminMode) {
       resetBtn.classList.remove("hidden");
+      try {
+        await refreshLeaderboard();
+      } catch (error) {
+        console.error('Admin refresh error:', error);
+      }
+      showLeaderboard();
       alert("ADMIN MODE ACTIVATED");
     } else {
       resetBtn.classList.add("hidden");
+      showLoginForm();
       alert("ADMIN MODE DEACTIVATED");
     }
   } else if (password !== null) {
