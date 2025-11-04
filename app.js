@@ -2,8 +2,8 @@
 const CONFIG = {
   // Valid Genesis codes - teams can submit multiple codes
   genesisCodes: {
-    "AND969962419": "Document Code", // Code in black text in documents
-    "AND310603257": "AI Hidden Code"    // Code hidden with AI
+    "AND889205302": "Document Code", // Code in black text in documents
+    "AND677885287": "AI Hidden Code"    // Code hidden with AI
   },
   nextClueUrl: "https://example.com/your-prerecorded-video", // TODO: replace with real URL
   storageKey: "navigate-this-leaderboard-v1",
