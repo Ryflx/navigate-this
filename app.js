@@ -16,8 +16,8 @@ const $ = (sel) => document.querySelector(sel);
 const state = {
   leaderboard: [],
   countdown: {
-    // Deadline: November 4th, 2025 at 10:30 AM UK/Ireland time (GMT)
-    deadline: new Date('2025-11-04T10:30:00Z'),
+    // Deadline: November 5th, 2025 at 10:30 AM UK/Ireland time (GMT)
+    deadline: new Date('2025-11-05T10:30:00Z'),
     intervalId: null
   },
   adminMode: false,
